@@ -148,29 +148,29 @@ jobs:
             ${{ steps.set-image-tags.outputs.tag }}
           load: true
 
-      - name: preserve image build
-        if: success()
-        uses: ishworkh/container-image-artifact-upload@v1.0.0
-        with:
-          image: ${{ steps.set-image-tags.outputs.tag }}
+      # - name: preserve image build
+      #   if: success()
+      #   uses: ishworkh/container-image-artifact-upload@v1.0.0
+      #   with:
+      #     image: ${{ steps.set-image-tags.outputs.tag }}
 
-  scan-image:
-    needs: image-build
-    permissions:
-      actions: read
-      checks: write
-      pull-requests: write
-      contents: read
-      security-events: write
-    uses: HCAECOE/.github/.github/workflows/wiz-scan-reusable.yml@main
-    with:
-      container-image-url: ${{ needs.image-build.outputs.container-image-tag }}
-      action-runner-list: '["self-hosted", "onprem-k8s-arc", "enterprise", "lnx-amd64", "dind"]'
-      use-image-artifact: true
-    secrets: inherit
+  # scan-image:
+  #   needs: image-build
+  #   permissions:
+  #     actions: read
+  #     checks: write
+  #     pull-requests: write
+  #     contents: read
+  #     security-events: write
+  #   uses: HCAECOE/.github/.github/workflows/wiz-scan-reusable.yml@main
+  #   with:
+  #     container-image-url: ${{ needs.image-build.outputs.container-image-tag }}
+  #     action-runner-list: '["self-hosted", "onprem-k8s-arc", "enterprise", "lnx-amd64", "dind"]'
+  #     use-image-artifact: true
+  #   secrets: inherit
 
   push:
-    needs: [ image-build, scan-image ]
+    needs: [ image-build]
     if: github.event_name == 'push'
     name: "Push"
     runs-on: ${{ fromJson( inputs.action-runner-list ) }}
@@ -198,10 +198,10 @@ jobs:
           password: '${{ steps.auth.outputs.access_token }}'
           registry: '${{ vars.ar_region }}-docker.pkg.dev'
 
-      - name: Download image artifact tag
-        uses: ishworkh/container-image-artifact-download@v1.1.1
-        with:
-          image: ${{ needs.image-build.outputs.container-image-tag }}       
+      # - name: Download image artifact tag
+      #   uses: ishworkh/container-image-artifact-download@v1.1.1
+      #   with:
+      #     image: ${{ needs.image-build.outputs.container-image-tag }}       
 
       - name: Docker Push
         shell: bash
@@ -214,7 +214,7 @@ jobs:
     name: "Cloud Run Deployment"
     runs-on: ${{ fromJson( inputs.action-runner-list ) }}
     environment: ${{ inputs.environment }}
-    needs: [ image-build, scan-image, push ]
+    needs: [ image-build, push ]
     permissions:
       id-token: write
       contents: read
