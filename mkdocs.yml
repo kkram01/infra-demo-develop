@@ -1,0 +1,11 @@
+site_name: 3kv-infra-demo on Google Cloud Run
+nav:
+  - Home: README.md
+  - How to use CI/CD pipeline: Deployment.md
+  - The cloudrun service definition: service.md
+ 
+  
+
+plugins:
+  - techdocs-core
+  

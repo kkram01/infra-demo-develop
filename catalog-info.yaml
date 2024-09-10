@@ -1,0 +1,60 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: 3kv-demo
+  description: demo Deploy to Cloud Run
+  tags:
+    - cloudrun
+    - gcp
+    - csharp
+    - service
+  annotations:
+    github.com/project-slug: hca-enterprise/3kv-infra-demo
+    backstage.io/techdocs-ref: dir:.
+  links:
+    - url: demo
+      title: "3kv-infra-demo Service url"
+    - url: https://console.cloud.google.com/run/detail//demo/metrics?hl=en-AU&project=
+      title: "3kv-infra-demo Service Metrics"
+      icon: dashboard
+    - url: https://console.cloud.google.com/run/detail//demo/logs?hl=en-AU&project=
+      title: "3kv-infra-demo Service Logs"
+      icon: dashboard
+
+spec:
+  owner: eid_3kv
+  system: system:default/hca-3kv-infra
+  type: service
+  lifecycle: experimental
+  providesApis:
+    - 3kv-demo-api
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: 3kv-demo-api
+  description: 
+  annotations:
+    github.com/project-slug: hca-enterprise/3kv-infra-demo
+  tags:
+    - cloudrun
+    - gcp
+    - csharp
+    - api
+    - openapi
+  links:
+    - url: https://github.com/hca-enterprise/3kv-infra-demo/bappCode/main/demo/swaggerfile.json
+      title: OpenAPI spec
+    - url: https://github.com/hca-enterprise/3kv-infra-demo
+      title: "Source code"
+      icon: github
+spec:
+  type: openapi
+  owner:  eid_3kv
+  lifecycle: experimental
+  system: system:default/hca-3kv-infra
+  definition:
+    $text: ../demo/swaggerfile.json
+  dependsOn:
+    - component:default/3kv-demo
+

@@ -1,0 +1,263 @@
+name: Cloud Run deployment workflow
+
+on:
+  workflow_call:
+    inputs:
+      action-runner-list:
+        default: '["self-hosted", "onprem-k8s-arc", "enterprise", "lnx-amd64", "dind"]'
+        description: "A comma seperated list of GitHub Action Runners where the jobs are to run."
+        required: false
+        type: string
+      environment:
+        type: string
+        required: true
+        description: Name of the target deployment environment. Acceptable values are 'dev', 'qa', or 'prod'
+      codeql-runner-list:
+        default: '["ubuntu-latest"]'
+        description: "A comma seperated list of GitHub Action Runners where the codeql scanning are to run."
+        required: false
+        type: string
+      serviceOrJob:
+        type: string
+        required: false
+        description: Whether it's a Cloud Run service or a job
+        default: 'service'
+
+jobs:
+  lint:
+    name: Lint
+    if: github.event_name == 'pull_request'
+    environment: ${{ inputs.environment }}
+    runs-on: ${{ fromJson( inputs.action-runner-list ) }}
+    timeout-minutes: 360
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: PyLint
+      if: ${{ vars.language == 'python' }}
+      working-directory: ./
+      run: |
+        python3 -m pip install -r requirements.txt
+        pip install pylint
+        export PATH=/home/runner/.local/bin:$PATH
+        pylint --recursive=y .
+      continue-on-error: true
+  setup:
+    if: github.event_name == 'pull_request'
+    environment: ${{ inputs.environment }}
+    runs-on: ${{ fromJson( inputs.codeql-runner-list ) }}
+    outputs:
+      environments: ${{ steps.build-environments.outputs.result }}
+    steps:
+      - name: Determine codeql matrix
+        id: build-environments
+        run: |
+          echo "result=['${{ vars.language }}']" >>$GITHUB_OUTPUT
+
+  scan:
+    name: Scan
+    if: github.event_name == 'pull_request'
+    environment: ${{ inputs.environment }}
+    runs-on: ${{ fromJson( inputs.codeql-runner-list ) }}
+    needs: setup
+    timeout-minutes: 360
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJson(needs.setup.outputs.environments) }}
+        # CodeQL supports [ 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'swift' ]
+        # Use only 'java-kotlin' to analyze code written in Java, Kotlin or both
+        # Use only 'javascript-typescript' to analyze code written in JavaScript, TypeScript or both
+        # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: set matrix 
+      run: echo ${{ matrix.language }}
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        source-root: ./
+        # If you wish to specify custom queries, you can do so here or in a config file.
+        # By default, queries listed here will override any specified in a config file.
+        # Prefix the list here with "+" to use these queries and those in the config file.
+
+        # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
+        # queries: security-extended,security-and-quality
+
+
+    # Autobuild attempts to build any compiled languages (C/C++, C#, Go, Java, or Swift).
+    # If this step fails, then you should remove it and run the build manually (see below)
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    # ℹ️ Command-line programs to run using the OS shell.
+    # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+
+    #   If the Autobuild fails above, remove it and uncomment the following three lines.
+    #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
+
+    # - run: |
+    #     echo "Run, Build Application using script"
+    #     ./location_of_script_within_repo/buildscript.sh
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+  image-build:
+    name: "Image Build"
+    runs-on: ${{ fromJson( inputs.action-runner-list ) }}
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      container-image-tag: ${{ steps.set-image-tags.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create image tags
+        id: set-image-tags
+        run: |
+          echo "tag=${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}" >>$GITHUB_OUTPUT
+
+      # Authenticate Docker Hub
+      - name: Docker Hub Authentication
+        id: docker-hub-auth
+        uses: 'docker/login-action@v3'
+        with:
+          username: '${{ secrets.DOCKER_USER}}'
+          password: '${{ secrets.DOCKER_TOKEN }}'
+
+      - name: Build and Tag
+        id: build-image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./
+          push: false
+          tags: |
+            ${{ steps.set-image-tags.outputs.tag }}
+          load: true
+
+      - name: preserve image build
+        if: success()
+        uses: ishworkh/container-image-artifact-upload@v1.0.0
+        with:
+          image: ${{ steps.set-image-tags.outputs.tag }}
+
+  scan-image:
+    needs: image-build
+    permissions:
+      actions: read
+      checks: write
+      pull-requests: write
+      contents: read
+      security-events: write
+    uses: HCAECOE/.github/.github/workflows/wiz-scan-reusable.yml@main
+    with:
+      container-image-url: ${{ needs.image-build.outputs.container-image-tag }}
+      action-runner-list: '["self-hosted", "onprem-k8s-arc", "enterprise", "lnx-amd64", "dind"]'
+      use-image-artifact: true
+    secrets: inherit
+
+  push:
+    needs: [ image-build, scan-image ]
+    if: github.event_name == 'push'
+    name: "Push"
+    runs-on: ${{ fromJson( inputs.action-runner-list ) }}
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Google Authentication
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}' # e.g. - projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
+          service_account: '${{ secrets.WIF_SERVICE_ACCOUNT }}'     # e.g. - my-service-account@my-project.iam.gserviceaccount.com
+
+      # Authenticate Docker to Google Cloud Artifact Registry
+      - name: Docker Authentication
+        id: docker-auth
+        uses: 'docker/login-action@v2.1.0'
+        with:
+          username: 'oauth2accesstoken'
+          password: '${{ steps.auth.outputs.access_token }}'
+          registry: '${{ vars.ar_region }}-docker.pkg.dev'
+
+      - name: Download image artifact tag
+        uses: ishworkh/container-image-artifact-download@v1.1.1
+        with:
+          image: ${{ needs.image-build.outputs.container-image-tag }}       
+
+      - name: Docker Push
+        shell: bash
+        run: |-
+          docker tag ${{ needs.image-build.outputs.container-image-tag }}  ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:latest
+          docker image push --all-tags ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}
+
+  deploy:
+    if: github.event_name == 'push'
+    name: "Cloud Run Deployment"
+    runs-on: ${{ fromJson( inputs.action-runner-list ) }}
+    environment: ${{ inputs.environment }}
+    needs: [ image-build, scan-image, push ]
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Authentication
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
+          service_account: '${{ secrets.WIF_SERVICE_ACCOUNT }}'
+
+      - name: Create Service ${{ inputs.environment }} Declaration
+        run: |-
+          export CONTAINER_IMAGE="${{ needs.image-build.outputs.container-image-tag }}"
+          export SERVICE_NAME="${{ vars.service_name }}"
+          export PROJECT_ID="${{ vars.gcp_project_id }}"
+          export REVISION_TAG="$(echo ${{ github.sha }} | cut -c1-7)"
+          export CLOUD_RUN_SA="${{ vars.cloud_run_sa }}"
+          export REGION="${{ vars.region }}"
+          export ENVIRONMENT="${{ inputs.environment }}"
+          envsubst < ./service-yaml/container-${{ inputs.environment }}.yaml > container-${{ inputs.environment }}.yaml
+
+      - name: Deploy to ${{ inputs.environment }} Cloud Run service
+        if: ${{ inputs.serviceOrJob == 'service' }}
+        id: deploy-service-dev-qa
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          project_id: ${{ vars.gcp_project_id }}
+          service: ${{ vars.service_name }}
+          region: ${{ vars.region }}
+          metadata: container-${{ inputs.environment }}.yaml
+  
+      - name: Deploy to ${{ inputs.environment }} Cloud Run job
+        if: ${{ inputs.serviceOrJob == 'job' }}
+        id: deploy-job-dev-qa
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          project_id: ${{ vars.gcp_project_id }}
+          job: ${{ vars.service_name }}
+          region: ${{ vars.region }}
+          metadata: container-${{ inputs.environment }}.yaml
+  

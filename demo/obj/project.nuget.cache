@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "dgSpecHash": "D8oolWW4Nzw=",
+  "success": true,
+  "projectFilePath": "/Users/kodrama/Documents/hca-residency-gke/3kv-infra-demo-develop/demo/demo.csproj",
+  "expectedPackageFiles": [
+    "/Users/kodrama/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/microsoft.extensions.logging.abstractions/6.0.0/microsoft.extensions.logging.abstractions.6.0.0.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/microsoft.openapi/1.2.3/microsoft.openapi.1.2.3.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/microsoft.visualstudio.azure.containers.tools.targets/1.14.0/microsoft.visualstudio.azure.containers.tools.targets.1.14.0.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/npgsql/7.0.6/npgsql.7.0.6.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/polly/8.4.0/polly.8.4.0.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/polly.core/8.4.0/polly.core.8.4.0.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/swashbuckle.aspnetcore/6.5.0/swashbuckle.aspnetcore.6.5.0.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/swashbuckle.aspnetcore.swagger/6.5.0/swashbuckle.aspnetcore.swagger.6.5.0.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/swashbuckle.aspnetcore.swaggergen/6.5.0/swashbuckle.aspnetcore.swaggergen.6.5.0.nupkg.sha512",
+    "/Users/kodrama/.nuget/packages/swashbuckle.aspnetcore.swaggerui/6.5.0/swashbuckle.aspnetcore.swaggerui.6.5.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'Npgsql' 7.0.6 has a known high severity vulnerability, https://github.com/advisories/GHSA-x9vc-6hfv-hg8c",
+      "libraryId": "Npgsql",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
+}
