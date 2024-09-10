@@ -261,3 +261,22 @@ jobs:
           region: ${{ vars.region }}
           metadata: container-${{ inputs.environment }}.yaml
   
+  update-env:
+    runs-on: ${{ fromJson( inputs.action-runner-list ) }}
+    environment: ${{ inputs.environment }}
+    needs: [ image-build, deploy ]
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      pull-requests: write
+      actions: read
+      security-events: write
+    steps:         
+      - name: Update Repository Env Variable with the latest container Image
+        run: |
+          gh variable list --env ${{ inputs.environment }}
+          gh variable set LAST_CONTAINER_IMAGE --env ${{ inputs.environment }} --body ${{ needs.image-build.outputs.container-image-tag }}
+          gh variable list --env ${{ inputs.environment }}
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+    
