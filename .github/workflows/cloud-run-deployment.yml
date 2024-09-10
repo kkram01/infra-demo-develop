@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       action-runner-list:
-        default: '["self-hosted", "onprem-k8s-arc", "enterprise", "lnx-amd64", "dind"]'
+        default: '["self-hosted", "onprem-k8s-arc", "enterprise", "lnx-amd64", "dind", "ubuntu-latest"]'
         description: "A comma seperated list of GitHub Action Runners where the jobs are to run."
         required: false
         type: string
@@ -210,7 +210,7 @@ jobs:
           docker image push --all-tags ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}
 
   deploy:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' 
     name: "Cloud Run Deployment"
     runs-on: ${{ fromJson( inputs.action-runner-list ) }}
     environment: ${{ inputs.environment }}
@@ -262,6 +262,7 @@ jobs:
           metadata: container-${{ inputs.environment }}.yaml
   
   update-env:
+    if: github.event_name == 'push' 
     runs-on: ${{ fromJson( inputs.action-runner-list ) }}
     environment: ${{ inputs.environment }}
     needs: [ image-build, deploy ]
@@ -279,4 +280,6 @@ jobs:
           gh variable list --env ${{ inputs.environment }}
         env:
           GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
+          #TODO: Check if this works even if the variable right now doesn't exist in the GIthub repo.
     
