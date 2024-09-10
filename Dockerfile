@@ -1,12 +1,12 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM hca-docker-innersource.repos.medcity.net/containers/base/dotnet-8.0-runtime:latest AS base
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 80
 EXPOSE 443
 
-FROM hca-docker-innersource.repos.medcity.net/containers/base/dotnet-8.0-build:latest AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["demo/demo.csproj", "demo/"]
 RUN dotnet restore "demo/demo.csproj"
@@ -29,6 +29,9 @@ LABEL department="${DEPARTMENT_NAME}"
 LABEL version=$IMAGE_VERSION
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN adduser appuser
+RUN addgroup appgroup
+RUN adduser appuser appgroup
 RUN chown -Rh ${APP_USER}:${APP_GROUP} /app 
 ENV ASPNETCORE_URLS=http://+:8080
 ENTRYPOINT ["dotnet", "demo.dll"]
