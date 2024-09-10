@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       action-runner-list:
-        default: '["self-hosted", "onprem-k8s-arc", "enterprise", "lnx-amd64", "dind", "ubuntu-latest"]'
+        default: '["ubuntu-latest"]'
         description: "A comma seperated list of GitHub Action Runners where the jobs are to run."
         required: false
         type: string
