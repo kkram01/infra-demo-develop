@@ -169,7 +169,6 @@ jobs:
           name: ${{ steps.set-image-tags.outputs.tag }}
           path: /tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
 
-
   push:
     needs: [ image-build]
     if: github.event_name == 'push'
