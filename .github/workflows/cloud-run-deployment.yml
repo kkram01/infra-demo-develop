@@ -211,7 +211,8 @@ jobs:
         shell: bash
         run: |-
           docker load --input /tmp/test-image.tar
-          docker image tag test-image ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}
+          docker tag ${{ needs.image-build.outputs.container-image-tag }} ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}
+          docker image push --all-tags ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}
 
   deploy:
     if: github.event_name == 'push' 
