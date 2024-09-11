@@ -132,7 +132,7 @@ jobs:
   
       - name: Google Auth
         id: auth
-        uses: 'google-github-actions/auth@v0'
+        uses: 'google-github-actions/auth@v2'
         with:
           token_format: 'access_token'
           workload_identity_provider: '${{ secrets.WIF_PROVIDER }}' # e.g. - projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
@@ -163,13 +163,13 @@ jobs:
       
       - name: Save docker image
         run: |-
-          docker image save -o "/tmp/test-image.tar" "${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}:${{ github.sha }}"
+          docker image save -o /tmp/test-image.tar ${{ steps.set-image-tags.outputs.tag }}
 
       - name: preserve image build
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.set-image-tags.outputs.tag }}
+          name: test-image
           path: /tmp/test-image.tar
 
   push:
@@ -204,7 +204,7 @@ jobs:
       - name: Download image artifact tag
         uses: actions/download-artifact@v4
         with:
-          image: ${{ needs.image-build.outputs.container-image-tag }}
+          name: test-image
           path: /tmp       
 
       - name: Docker Push
