@@ -147,6 +147,10 @@ jobs:
           password: '${{ steps.auth.outputs.access_token }}'
           registry: '${{ vars.ar_region }}-docker.pkg.dev'
 
+      - name: create required directory
+        run: |-
+          mkdir -p /tmp
+
       - name: Build and Tag
         id: build-image
         uses: docker/build-push-action@v6
@@ -157,7 +161,6 @@ jobs:
             ${{ steps.set-image-tags.outputs.tag }}
           outputs: type=docker, dest=/tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
           load: true
-
 
       - name: preserve image build
         if: success()
