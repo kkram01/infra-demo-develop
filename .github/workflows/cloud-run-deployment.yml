@@ -158,13 +158,13 @@ jobs:
           outputs: type=docker, dest=/tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
           load: true
 
+
       - name: preserve image build
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.set-image-tags.outputs.tag }}
           path: /tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
-
 
   push:
     needs: [ image-build]
