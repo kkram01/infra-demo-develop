@@ -155,8 +155,16 @@ jobs:
           push: false
           tags: |
             ${{ steps.set-image-tags.outputs.tag }}
+          outputs: type=docker, dest=/tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
           load: true
 
+
+      - name: preserve image build
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.set-image-tags.outputs.tag }}
+          path: /tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
 
   push:
     needs: [ image-build]
@@ -187,14 +195,16 @@ jobs:
           password: '${{ steps.auth.outputs.access_token }}'
           registry: '${{ vars.ar_region }}-docker.pkg.dev'
 
-      # - name: Download image artifact tag
-      #   uses: ishworkh/container-image-artifact-download@v1.1.1
-      #   with:
-      #     image: ${{ needs.image-build.outputs.container-image-tag }}       
+      - name: Download image artifact tag
+        uses: actions/download-artifact@v4
+        with:
+          image: ${{ needs.image-build.outputs.container-image-tag }}
+          path: /tmp       
 
       - name: Docker Push
         shell: bash
         run: |-
+          docker load --input /tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
           docker tag ${{ needs.image-build.outputs.container-image-tag }}  ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:latest
           docker image push --all-tags ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}
 
