@@ -149,7 +149,7 @@ jobs:
 
       - name: create required directory
         run: |-
-          mkdir -p /tmp
+          mkdir -p /tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}
 
       - name: Build and Tag
         id: build-image
@@ -159,15 +159,18 @@ jobs:
           push: false
           tags: |
             ${{ steps.set-image-tags.outputs.tag }}
-          outputs: type=docker, dest=/tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
           load: true
+      
+      - name: Save docker image
+        run: |-
+          docker image save -o "/tmp/test-image.tar" "${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}:${{ github.sha }}"
 
       - name: preserve image build
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.set-image-tags.outputs.tag }}
-          path: /tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
+          path: /tmp/test-image.tar
 
   push:
     needs: [ image-build]
@@ -207,7 +210,8 @@ jobs:
       - name: Docker Push
         shell: bash
         run: |-
-          docker load --input /tmp/${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}.tar
+          docker load --input /tmp/test-image.tar
+          docker image tag test-image ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}
           docker tag ${{ needs.image-build.outputs.container-image-tag }}  ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:latest
           docker image push --all-tags ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}
 
