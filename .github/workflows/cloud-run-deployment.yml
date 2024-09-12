@@ -278,6 +278,8 @@ jobs:
       actions: read
       security-events: write
     steps:         
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Update Repository Env Variable with the latest container Image
         run: |
           gh variable list --env ${{ inputs.environment }}
