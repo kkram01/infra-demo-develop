@@ -4,6 +4,7 @@ on:
     types: [published]
 jobs:
   image-tag: 
+    if: github.base_ref == 'main'
     name: "Image tag to latest"
     runs-on: [ubuntu-latest]
     environment: prod
