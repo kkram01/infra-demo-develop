@@ -1,0 +1,38 @@
+name: Build and Deploy to Cloud Run
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [develop, main]
+    paths:
+      - 'service-yaml/*'
+  push:
+    branches: [develop, main]
+    paths:
+      - 'service-yaml/*'
+jobs:
+  dev:
+    if: github.ref_name == 'develop' || github.base_ref == 'develop'
+    uses: ./.github/workflows/cloud-run-deployment.yml
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+      security-events: write
+      checks: write
+      pull-requests: write
+    with:
+      environment: dev
+    secrets: inherit
+  qa:
+    if: github.ref_name == 'main' || github.base_ref == 'main'
+    uses: ./.github/workflows/cloud-run-deployment.yml
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+      security-events: write
+      checks: write
+      pull-requests: write
+    with:
+      environment: qa
+    secrets: inherit

@@ -1,0 +1,77 @@
+name: Cloud Run deployment workflow
+
+on:
+  workflow_call:
+    inputs:
+      action-runner-list:
+        default: '["ubuntu-latest"]'
+        description: "A comma seperated list of GitHub Action Runners where the jobs are to run."
+        required: false
+        type: string
+      environment:
+        type: string
+        required: true
+        description: Name of the target deployment environment. Acceptable values are 'dev', 'qa', or 'prod'
+      codeql-runner-list:
+        default: '["ubuntu-latest"]'
+        description: "A comma seperated list of GitHub Action Runners where the codeql scanning are to run."
+        required: false
+        type: string
+      serviceOrJob:
+        type: string
+        required: false
+        description: Whether it's a Cloud Run service or a job
+        default: 'service'
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' 
+    name: "Cloud Run Deployment"
+    runs-on: ${{ fromJson( inputs.action-runner-list ) }}
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Authentication
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: '${{ secrets.WIF_PROVIDER }}'
+          service_account: '${{ secrets.WIF_SERVICE_ACCOUNT }}'
+
+      - name: Create Service ${{ inputs.environment }} Declaration
+        run: |-
+          export CONTAINER_IMAGE="${{ vars.LAST_CONTAINER_IMAGE }}"
+          export SERVICE_NAME="${{ vars.service_name }}"
+          export PROJECT_ID="${{ vars.gcp_project_id }}"
+          export REVISION_TAG="$(echo ${{ github.sha }} | cut -c1-7)"
+          export CLOUD_RUN_SA="${{ vars.cloud_run_sa }}"
+          export REGION="${{ vars.region }}"
+          export ENVIRONMENT="${{ inputs.environment }}"
+          envsubst < ./service-yaml/container-${{ inputs.environment }}.yaml > container-${{ inputs.environment }}.yaml
+
+      - name: Deploy to ${{ inputs.environment }} Cloud Run service
+        if: ${{ inputs.serviceOrJob == 'service' }}
+        id: deploy-service-dev-qa
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          project_id: ${{ vars.gcp_project_id }}
+          service: ${{ vars.service_name }}
+          region: ${{ vars.region }}
+          metadata: container-${{ inputs.environment }}.yaml
+  
+      - name: Deploy to ${{ inputs.environment }} Cloud Run job
+        if: ${{ inputs.serviceOrJob == 'job' }}
+        id: deploy-job-dev-qa
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          project_id: ${{ vars.gcp_project_id }}
+          job: ${{ vars.service_name }}
+          region: ${{ vars.region }}
+          metadata: container-${{ inputs.environment }}.yaml
+    
