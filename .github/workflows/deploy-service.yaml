@@ -11,8 +11,8 @@ jobs:
   
   check_changes:  # New job to check for file changes 
     outputs:
-      dev: ${{steps.verify-changed-files.outputs.dev_any_modified == 'true'}}
-      qa: ${{steps.verify-changed-files.outputs.qa_any_modified == 'true'}}
+      dev: ${{steps.verify-changed-files.outputs.dev.any_modified}}
+      qa: ${{steps.verify-changed-files.outputs.qa.any_modified}}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
