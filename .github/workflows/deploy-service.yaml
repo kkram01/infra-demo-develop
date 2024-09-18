@@ -11,8 +11,8 @@ jobs:
   
   check_changes:  # New job to check for file changes 
     outputs:
-      dev: ${{steps.verify-changed-files.outputs.dev_all_changed_files}}
-      qa: ${{steps.verify-changed-files.outputs.qa_all_changed_files}}
+      dev: ${{steps.verify-changed-files.outputs.dev_any_changed}}
+      qa: ${{steps.verify-changed-files.outputs.qa_any_changed}}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -29,14 +29,13 @@ jobs:
           qa: &qa
             - service-yaml/container-qa.yaml
             
-    - name: Run step if test file(s) change
-      # NOTE: Ensure all outputs are prefixed by the same key used above e.g. `test_(...)` | `doc_(...)` | `src_(...)` when trying to access the `any_changed` output.
-      if: steps.verify-changed-files.outputs.dev_any_changed == 'true'  
+    - name: output which file change
+      id: changed-output-dev
       env:
-        TEST_ALL_CHANGED_FILES: ${{ steps.verify-changed-files.outputs.dev_all_changed_files }}
+        CHANGED: ${{ steps.verify-changed-files.outputs.dev_any_changed }}
       run: |
         echo "One or more test file(s) has changed."
-        echo "List all the files that have changed: $TEST_ALL_CHANGED_FILES"
+        echo  $TEST_ALL_CHANGED_FILES"
     - id: changed-files
       uses: tj-actions/changed-files@v45
     # NOTE: `since_last_remote_commit: true` is implied by default and falls back to the previous local commit.
@@ -54,7 +53,7 @@ jobs:
 
   dev:
     needs: [check_changes]
-    if: (github.ref_name == 'develop' || github.base_ref == 'develop') && needs.check_changes.outputs.dev == 'true' 
+    if: (github.ref_name == 'develop' || github.base_ref == 'develop') && ${{ needs.check_changes.outputs.dev == 'true' }}
     
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
