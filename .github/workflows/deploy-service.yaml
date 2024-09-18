@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Verify Changed files Dev
-      uses: tj-actions/verify-changed-files@v20
+      uses: tj-actions/changed-files@v45
       id: verify-changed-files-dev
       with:
           files: |
@@ -24,7 +24,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Verify Changed files QA
-      uses: tj-actions/verify-changed-files@v20
+      uses: tj-actions/changed-files@v45
       id: verify-changed-files-qa
       with:
           files: |
