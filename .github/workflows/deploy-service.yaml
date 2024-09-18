@@ -8,18 +8,32 @@ on:
       - 'service-yaml/container-qa.yaml'
 
 jobs:
-  check_changes:  # New job to check for file changes 
+  check_changes_dev:  # New job to check for file changes 
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Check for changes in service-yaml
-      id: check_changes  # Set an ID for this step to access its output
-      run: |
-        if [[ -n $(git diff --name-only HEAD^ HEAD | grep "service-yaml/container-${{ github.ref_name == 'develop' && 'dev' || 'qa' }}.yaml") ]]; then
-          echo "::set-output name=changes_exist::true"
-        fi
+    - name: Verify Changed files Dev
+      uses: tj-actions/verify-changed-files@v20
+      id: verify-changed-files-dev
+      with:
+          files: |
+             service-yaml/container-dev.yaml
+
+  check_changes_qa:  # New job to check for file changes 
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Verify Changed files QA
+      uses: tj-actions/verify-changed-files@v20
+      id: verify-changed-files-qa
+      with:
+          files: |
+             service-yaml/container-qa.yaml
+
+
   dev:
-    if: github.ref_name == 'develop' || github.base_ref == 'develop' && needs.check_changes.outputs.changes_exist == 'true' 
+    if: github.ref_name == 'develop' || github.base_ref == 'develop' && needs.verify-changed-files-dev.outputs.files_changed == 'true' 
+    needs: check_changes_dev
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
@@ -33,8 +47,8 @@ jobs:
     secrets: inherit
 
   qa:
-    needs: check_changes
-    if: github.ref_name == 'main' || github.base_ref == 'main' && needs.check_changes.outputs.changes_exist == 'true' 
+    needs: check_changes_qa
+    if: github.ref_name == 'main' || github.base_ref == 'main' && needs.verify-changed-files-qa.outputs.files_changed == 'true'
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
