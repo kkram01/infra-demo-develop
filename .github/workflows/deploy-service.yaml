@@ -47,12 +47,12 @@ jobs:
     needs: [check_changes]
     runs-on: ubuntu-latest
     steps:
-     - env: 
-        DEV: ${{needs.check_changes.outputs.dev}}
-        QA: ${{needs.check_changes.outputs.qa}}
-        CHANGED_DEV: ${{needs.check_changes.outputs.changed_dev}}
-        CHANGED_QA: ${{needs.check_changes.outputs.changed_qa}}
-      run: echo "$DEV $QA $CHANGED_DEV $CHANGED_QA"
+      - env: 
+          DEV: ${{needs.check_changes.outputs.dev}}
+          QA: ${{needs.check_changes.outputs.qa}}
+          CHANGED_DEV: ${{needs.check_changes.outputs.changed_dev}}
+          CHANGED_QA: ${{needs.check_changes.outputs.changed_qa}}
+        run: echo "$DEV $QA $CHANGED_DEV $CHANGED_QA"
 
   dev:
     needs: [test]
