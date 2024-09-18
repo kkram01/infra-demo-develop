@@ -32,7 +32,7 @@ jobs:
 
 
   dev:
-    if: github.ref_name == 'develop' || github.base_ref == 'develop' && needs.verify-changed-files-dev.outputs.files_changed == 'true' 
+    if: (github.ref_name == 'develop' || github.base_ref == 'develop') && needs.verify-changed-files-dev.outputs.files_changed == 'true' 
     needs: check_changes_dev
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
@@ -48,7 +48,7 @@ jobs:
 
   qa:
     needs: check_changes_qa
-    if: github.ref_name == 'main' || github.base_ref == 'main' && needs.verify-changed-files-qa.outputs.files_changed == 'true'
+    if: (github.ref_name == 'main' || github.base_ref == 'main') && needs.verify-changed-files-qa.outputs.files_changed == 'true'
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
