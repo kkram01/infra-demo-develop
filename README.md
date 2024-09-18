@@ -1,7 +1,7 @@
 ## demo application
 
 ### Files
-- Dockerfile
+- Dockerfile1
 - [Project Name].csproj - Handles configuration and Dependencies of the application
 - Program.cs - Handles initialization of the application
 - Controllers - Details the endpoints the application will serve
@@ -10,7 +10,7 @@
 
 ### Testing
 build and test locally:
-- IMAGE_NAME=demo
+- IMAGE_NAME=demo1
 - docker build -t $IMAGE_NAME .
 - docker run -dp 127.0.0.1:8080:8080 $IMAGE_NAME
 - curl 127.0.0.1:8080
