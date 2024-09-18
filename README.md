@@ -10,7 +10,7 @@
 
 ### Testing
 build and test locally:
-- IMAGE_NAME=demo
+- IMAGE_NAME=demo1
 - docker build -t $IMAGE_NAME .
 - docker run -dp 127.0.0.1:8080:8080 $IMAGE_NAME
 - curl 127.0.0.1:8080
