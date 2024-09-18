@@ -31,7 +31,7 @@ jobs:
             
     - name: Run step if test file(s) change
       # NOTE: Ensure all outputs are prefixed by the same key used above e.g. `test_(...)` | `doc_(...)` | `src_(...)` when trying to access the `any_changed` output.
-      if: steps.changed-files-yaml.outputs.test_any_changed == 'true'  
+      if: steps.verify-changed-files.outputs.dev_any_changed == 'true'  
       env:
         TEST_ALL_CHANGED_FILES: ${{ steps.verify-changed-files.outputs.dev_all_changed_files }}
       run: |
