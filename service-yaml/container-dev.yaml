@@ -24,7 +24,7 @@ spec:
         run.googleapis.com/execution-environment: gen2
         # run.googleapis.com/vpc-access-egress: all-traffic
         autoscaling.knative.dev/minScale: '1'
-        autoscaling.knative.dev/maxScale: '2'
+        autoscaling.knative.dev/maxScale: '3'
         # run.googleapis.com/vpc-access-connector: projects/hca-itg-shared-networks/locations/us-east4/connectors/idp-dev-conn-us-east4
    
         run.googleapis.com/container-dependencies: '{"${SERVICE_NAME}":["cloudsqlproxy-sidecar"]}' # not applicable to cloud run jobs
