@@ -16,8 +16,8 @@ jobs:
       uses: tj-actions/changed-files@v45
       id: verify-changed-files-dev
       with:
-          files: |
-             service-yaml/container-dev.yaml
+          files_yaml: |
+             - 'service-yaml/container-dev.yaml'
 
   check_changes_qa:  # New job to check for file changes 
     runs-on: ubuntu-latest
@@ -27,8 +27,8 @@ jobs:
       uses: tj-actions/changed-files@v45
       id: verify-changed-files-qa
       with:
-          files: |
-             service-yaml/container-qa.yaml
+          files_yaml: |
+            - 'service-yaml/container-qa.yaml'
 
 
   dev:
