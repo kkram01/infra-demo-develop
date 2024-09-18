@@ -13,6 +13,8 @@ jobs:
     outputs:
       dev: ${{steps.verify-changed-files.outputs.dev_any_changed}}
       qa: ${{steps.verify-changed-files.outputs.qa_any_changed}}
+      changed_dev: ${{steps.dev-changed.changed}}
+      changed_qa: ${{steps.qa-changed.changed}}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -29,30 +31,31 @@ jobs:
           qa: &qa
             - service-yaml/container-qa.yaml
             
-    - name: output which file change
-      id: changed-output-dev
+    - name: output which file change for dev
+      id: dev-changed
       env:
         CHANGED: ${{ steps.verify-changed-files.outputs.dev_any_changed }}
       run: |
-        echo "One or more test file(s) has changed."
-        echo  $TEST_ALL_CHANGED_FILES"
-    - id: changed-files
-      uses: tj-actions/changed-files@v45
-    # NOTE: `since_last_remote_commit: true` is implied by default and falls back to the previous local commit.
-
-    - name: List all changed files
+        echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
+    - name: output which file change for dev
+      id: qa-changed
       env:
-        ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        CHANGED: ${{ steps.verify-changed-files.outputs.qa_any_changed }}
       run: |
-        for file in ${ALL_CHANGED_FILES}; do
-          echo "$file was changed"
-        done
-    
- 
-
+        echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
+  test:
+    needs: [check_changes]
+    runs-on: ubuntu-latest
+    steps:
+     - env: 
+        DEV: ${{needs.check_changes.outputs.dev}}
+        QA: ${{needs.check_changes.outputs.qa}}
+        CHANGED_DEV: ${{needs.check_changes.outputs.changed_dev}}
+        CHANGED_QA: ${{needs.check_changes.outputs.changed_qa}}
+      run: echo "$DEV $QA $CHANGED_DEV $CHANGED_QA"
 
   dev:
-    needs: [check_changes]
+    needs: [test]
     if: (github.ref_name == 'develop' || github.base_ref == 'develop') && ${{ needs.check_changes.outputs.dev == 'true' }}
     
     uses: ./.github/workflows/cloud-run-service-deployment.yml
