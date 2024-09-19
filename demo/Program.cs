@@ -18,7 +18,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline. new
 // Configured Swagger UI to load as default path.
 app.UseSwagger();
 app.UseSwaggerUI(options =>
