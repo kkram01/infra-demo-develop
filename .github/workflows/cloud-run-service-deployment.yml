@@ -46,7 +46,7 @@ jobs:
 
       - name: Create Service ${{ inputs.environment }} Declaration
         run: |-
-          export CONTAINER_IMAGE="${{ vars.LAST_CONTAINER_IMAGE }}"
+          export CONTAINER_IMAGE="${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ vars.LAST_CONTAINER_TAG }}"
           export SERVICE_NAME="${{ vars.service_name }}"
           export PROJECT_ID="${{ vars.gcp_project_id }}"
           export REVISION_TAG="$(echo ${{ github.sha }} | cut -c1-7)"
