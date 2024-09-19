@@ -74,4 +74,3 @@ jobs:
           job: ${{ vars.service_name }}
           region: ${{ vars.region }}
           metadata: container-${{ inputs.environment }}.yaml
-    
