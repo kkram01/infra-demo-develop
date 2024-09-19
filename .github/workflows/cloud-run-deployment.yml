@@ -212,6 +212,7 @@ jobs:
         run: |-
           docker load --input /tmp/test-image.tar
           docker tag ${{ needs.image-build.outputs.container-image-tag }} ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.sha }}
+          docker tag ${{ needs.image-build.outputs.container-image-tag }} ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:latest
           docker image push --all-tags ${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}
 
   deploy:
