@@ -277,16 +277,32 @@ jobs:
       pull-requests: write
       actions: read
       security-events: write
-    steps:         
-      - name: Checkout
+    steps: 
+      - name: Checkout repository
         uses: actions/checkout@v4
       - name: Update Repository Env Variable with the latest container Image
         run: |
-          gh variable list --env ${{ inputs.environment }}
           gh variable set LAST_CONTAINER_IMAGE --env ${{ inputs.environment }} --body ${{ needs.image-build.outputs.container-image-tag }}
-          gh variable list --env ${{ inputs.environment }}
         env:
           GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
           #TODO: Check if this works even if the variable right now doesn't exist in the GIthub repo.
-    
+  update-env-prod:
+    if: github.event_name == 'push' && inputs.environment == 'qa'
+    runs-on: ${{ fromJson( inputs.action-runner-list ) }}
+    environment: prod
+    needs: [ image-build, deploy ]
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      pull-requests: write
+      actions: read
+      security-events: write
+    steps: 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Update Repository Env Variable with the latest container Image
+        run: |
+          gh variable set LAST_CONTAINER_IMAGE --env prod --body ${{ needs.image-build.outputs.container-image-tag }}
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}   

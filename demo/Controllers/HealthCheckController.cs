@@ -9,6 +9,7 @@ namespace demo.Controllers
    
     [ApiController]
     [Route("/healthcheck")]
+    //adding
     public class HealthCheckController : ControllerBase
     {
         private readonly ILogger<HealthCheckController> _logger;
