@@ -32,7 +32,7 @@ jobs:
 
   dev:
     needs: [check_changes]
-    if: ${{ github.ref_name == 'develop' || github.base_ref == 'develop' &&  needs.check_changes.outputs.dev }}
+    if: ${{ (github.ref_name == 'develop' || github.base_ref == 'develop') &&  needs.check_changes.outputs.dev }}
     
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
@@ -48,7 +48,7 @@ jobs:
 
   qa:
     needs: [check_changes]
-    if: ${{ github.ref_name == 'main' || github.base_ref == 'main' && needs.check_changes.outputs.qa }}
+    if: ${{ (github.ref_name == 'main' || github.base_ref == 'main') && needs.check_changes.outputs.qa }}
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
