@@ -11,11 +11,13 @@ jobs:
   
   check_changes:  # New job to check for file changes 
     outputs:
-      dev: ${{steps.verify-changed-files.outputs.dev_any_modified == 'true'}}
-      qa: ${{steps.verify-changed-files.outputs.qa_any_modified == 'true'}}
+      dev: ${{steps.verify-changed-files.outputs.dev_any_changed}}
+      qa: ${{steps.verify-changed-files.outputs.qa_any_changed}}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Verify Changed files Dev
       
       uses: tj-actions/changed-files@v45
@@ -28,12 +30,10 @@ jobs:
             - service-yaml/container-qa.yaml
             
 
- 
-
-
   dev:
-    if: (github.ref_name == 'develop' || github.base_ref == 'develop') && needs.check_changes.outputs.dev == 'true' 
     needs: [check_changes]
+    if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true'}}
+    
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
@@ -48,7 +48,7 @@ jobs:
 
   qa:
     needs: [check_changes]
-    if: (github.ref_name == 'main' || github.base_ref == 'main') && needs.check_changes.outputs.qa == 'true'
+    if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' }}
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
