@@ -286,7 +286,7 @@ jobs:
 
           #TODO: Check if this works even if the variable right now doesn't exist in the GIthub repo.
   update-env-prod:
-    if: github.event_name == 'push' and inputs.environment == 'qa'
+    if: github.event_name == 'push' && inputs.environment == 'qa'
     runs-on: ${{ fromJson( inputs.action-runner-list ) }}
     environment: prod
     needs: [ image-build, deploy ]
