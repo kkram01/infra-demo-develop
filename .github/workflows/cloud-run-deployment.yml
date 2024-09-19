@@ -278,8 +278,6 @@ jobs:
       actions: read
       security-events: write
     steps:         
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Update Repository Env Variable with the latest container Image
         run: |
           gh variable set LAST_CONTAINER_IMAGE --env ${{ inputs.environment }} --body ${{ needs.image-build.outputs.container-image-tag }}
@@ -299,8 +297,6 @@ jobs:
       actions: read
       security-events: write
     steps:         
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Update Repository Env Variable with the latest container Image
         run: |
           gh variable set LAST_CONTAINER_IMAGE --env prod --body ${{ needs.image-build.outputs.container-image-tag }}
