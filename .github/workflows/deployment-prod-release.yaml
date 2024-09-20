@@ -31,9 +31,6 @@ jobs:
           "${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:latest" \
           "${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.event.release.tag_name }}"
 
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Create prod Service Declaration   
         run: |-
           export CONTAINER_IMAGE="${{ vars.ar_region }}-docker.pkg.dev/${{ vars.artifact_registry_project }}/${{ vars.artifact_registry_repo }}/${{ vars.service_name }}:${{ github.event.release.tag_name }}"
