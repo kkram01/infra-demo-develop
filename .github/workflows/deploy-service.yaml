@@ -39,7 +39,7 @@ jobs:
       run: echo "changed count $COUNT $OUTPUT"
       env:
         COUNT: ${{steps.verify-changed-files-count.outputs.all_changed_and_modified_files_count }}
-        OUTPUT:  ${{fromJson(steps.verify-changed-files.outputs)}}
+        OUTPUT:  ${{toJSON(steps.verify-changed-files.outputs)}}
   test:
     needs: [check_changes]
     runs-on: ubuntu-latest
