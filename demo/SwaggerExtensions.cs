@@ -1,7 +1,7 @@
 ﻿using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
-//test
+//test2
 public static class SwaggerExtensions
 {
     public static void SaveSwaggerJson(this IServiceProvider provider)
