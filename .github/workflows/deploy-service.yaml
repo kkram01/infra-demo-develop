@@ -30,16 +30,7 @@ jobs:
             - service-yaml/container-dev.yaml
           qa: &qa
             - service-yaml/container-qa.yaml
-# skip this action since the other action will trigger a build 
-    - name: Check if only changed
-      uses: tj-actions/changed-files@v45
-      id: verify-changed-files-count
-      
-    - name: Check Files count output
-      run: echo "changed count $COUNT $OUTPUT"
-      env:
-        COUNT: ${{steps.verify-changed-files-count.outputs.all_changed_and_modified_files_count }}
-        OUTPUT:  ${{toJSON(steps.verify-changed-files.outputs)}}
+
   test:
     needs: [check_changes]
     runs-on: ubuntu-latest
@@ -50,33 +41,33 @@ jobs:
           CHANGED_COUNT: ${{needs.check_changes.outputs.other_count}}
         run: echo "$DEV $QA $CHANGED_COUNT"            
 
-  # dev:
-  #   needs: [check_changes]
-  #   if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.other_count == '0' }}
+  dev:
+    needs: [check_changes]
+    if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.other_count_dev == '0' &&  needs.check_changes.outputs.other_count_qa == '1'  }}
     
-  #   uses: ./.github/workflows/cloud-run-service-deployment.yml
-  #   permissions:
-  #     id-token: write
-  #     contents: read
-  #     actions: read
-  #     security-events: write
-  #     checks: write
-  #     pull-requests: write
-  #   with:
-  #     environment: dev
-  #   secrets: inherit
+    uses: ./.github/workflows/cloud-run-service-deployment.yml
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+      security-events: write
+      checks: write
+      pull-requests: write
+    with:
+      environment: dev
+    secrets: inherit
 
-  # qa:
-  #   needs: [check_changes]
-  #   if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' && needs.check_changes.outputs.other_count == '0'  }}
-  #   uses: ./.github/workflows/cloud-run-service-deployment.yml
-  #   permissions:
-  #     id-token: write
-  #     contents: read
-  #     actions: read
-  #     security-events: write
-  #     checks: write
-  #     pull-requests: write
-  #   with:
-  #     environment: qa
-  #   secrets: inherit
+  qa:
+    needs: [check_changes]
+    if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' && needs.check_changes.outputs.other_count_qa == '0' && needs.check_changes.outputs.other_count_dev == '0' }}
+    uses: ./.github/workflows/cloud-run-service-deployment.yml
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+      security-events: write
+      checks: write
+      pull-requests: write
+    with:
+      environment: qa
+    secrets: inherit
