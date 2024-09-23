@@ -33,7 +33,7 @@ jobs:
 
   dev:
     needs: [check_changes]
-    if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.other_count == "0" }}
+    if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.other_count == '0' }}
     
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
@@ -49,7 +49,7 @@ jobs:
 
   qa:
     needs: [check_changes]
-    if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' && needs.check_changes.outputs.other_count == "0"  }}
+    if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' && needs.check_changes.outputs.other_count == '0'  }}
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
