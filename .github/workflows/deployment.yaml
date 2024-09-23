@@ -7,7 +7,7 @@ on:
       - '**/README.md'
       - 'docs/**'
       - '.github/**'
-      - 'service-yaml/*' #TODO: The service-yaml trigger would be created under a separate workflow
+      - 'service-yaml/**' #TODO: The service-yaml trigger would be created under a separate workflow
       - 'workflows/**'
   push:
     branches: [develop, main]
@@ -15,7 +15,7 @@ on:
       - '**/README.md'
       - 'docs/**'
       - '.github/**'
-      - 'service-yaml/*'   #TODO: The service-yaml trigger would be created under a separate workflow
+      - 'service-yaml/**'   #TODO: The service-yaml trigger would be created under a separate workflow
       - 'workflows/**'
 #test comment
 jobs:
