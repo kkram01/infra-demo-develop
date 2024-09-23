@@ -29,7 +29,15 @@ jobs:
             - service-yaml/container-dev.yaml
           qa: &qa
             - service-yaml/container-qa.yaml
-            
+  test:
+    needs: [check_changes]
+    runs-on: ubuntu-latest
+    steps:
+      - env: 
+          DEV: ${{needs.check_changes.outputs.dev}}
+          QA: ${{needs.check_changes.outputs.qa}}
+          CHANGED_COUNT: ${{needs.check_changes.outputs.other_count}}
+        run: echo "$DEV $QA $CHANGED_COUNT"            
 
   dev:
     needs: [check_changes]
