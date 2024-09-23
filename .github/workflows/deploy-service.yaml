@@ -33,7 +33,7 @@ jobs:
     - name: Check Files count output
       run: echo "changed count $COUNT"
       env:
-        COUNT: ${{steps.steps.verify-changed-files.outputs.dev_other_changed_files_count }}
+        COUNT: ${{steps.steps.verify-changed-files.outputs }}
   test:
     needs: [check_changes]
     runs-on: ubuntu-latest
