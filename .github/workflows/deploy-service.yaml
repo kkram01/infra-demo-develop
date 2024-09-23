@@ -29,6 +29,10 @@ jobs:
             - service-yaml/container-dev.yaml
           qa: &qa
             - service-yaml/container-qa.yaml
+    - name: Check Files count output
+      run: echo "changed count $COUNT"
+      env:
+        COUNT: ${{steps.steps.verify-changed-files.outputs.other_changed_files_count }}
   test:
     needs: [check_changes]
     runs-on: ubuntu-latest
