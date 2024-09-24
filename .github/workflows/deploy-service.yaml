@@ -13,7 +13,7 @@ jobs:
     outputs:
       dev: ${{steps.verify-changed-files.outputs.dev_any_changed}}
       qa: ${{steps.verify-changed-files.outputs.qa_any_changed}}
-      other_count_dev: ${{ steps.verify-changed-files.outputs.dev_other_changed_files_count }}
+      other_service: ${{ steps.verify-changed-files.outputs.dev_other_changed_files_count }}
       other_count_qa: ${{ steps.verify-changed-files.outputs.qa_other_changed_files_count }}
     runs-on: ubuntu-latest
     steps:
@@ -30,11 +30,19 @@ jobs:
             - service-yaml/container-dev.yaml
           qa: &qa
             - service-yaml/container-qa.yaml
-    - name: Check Files count output
-      run: echo "changed count $OUTPUT"
+    - name: List all changed files
+      id: run-dev
       env:
-        OUTPUT:  ${{toJSON(steps.verify-changed-files.outputs)}}
-          
+        OTHER: ${{ steps.verify-changed-files.outputs.dev_other_changed_files }}
+      run: |
+        check="true"
+        for file in ${OTHER}; do
+          if [[ ! "$file" =~ ^"service-yaml" ]]; then
+             check="false"
+             break
+          fi
+        done
+        echo $check  
 
   dev:
     needs: [check_changes]
