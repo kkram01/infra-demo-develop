@@ -4,7 +4,7 @@ on:
     types: [published]
 jobs:
   release:
-    uses: ./.github/workflows/cloud-run-deployment.yml
+    uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
       contents: read
