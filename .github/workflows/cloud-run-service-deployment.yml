@@ -25,7 +25,6 @@ on:
 
 jobs:
   deploy:
-    if: github.event_name == 'push' 
     name: "Cloud Run Deployment"
     runs-on: ${{ fromJson( inputs.action-runner-list ) }}
     environment: ${{ inputs.environment }}
