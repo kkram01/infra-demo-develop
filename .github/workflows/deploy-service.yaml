@@ -35,18 +35,18 @@ jobs:
       env:
         OTHER: ${{ steps.verify-changed-files.outputs.dev_other_changed_files }}
       run: |
-        check="true"
+        check=true
         for file in ${OTHER}; do
           if [[ ! "$file" =~ ^"service-yaml" ]]; then
-             check="false"
+             check=false
              break
           fi
         done
         echo $check
-        echo "run=$check" >>$GITHUB_OUTPUT 
-        echo toJSON($GITHUB_OUTPUT)
+        echo "run=$(echo "$check") >>$GITHUB_OUTPUT 
 
   dev:
+  
     needs: [check_changes]
     if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.run == 'true'  }}
     
