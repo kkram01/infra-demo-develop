@@ -24,9 +24,9 @@ jobs:
       id: verify-changed-files
       with:
         files_yaml: |
-          dev: &dev
+          dev: 
             - service-yaml/container-dev.yaml
-          qa: &qa
+          qa: 
             - service-yaml/container-qa.yaml
       # the reason we are doing this check is to cover the use case where the original cloud run workflow will trigger
       # if both a file outside the service-yaml folder changed and the service-yaml folder.
