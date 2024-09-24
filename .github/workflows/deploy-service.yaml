@@ -13,8 +13,7 @@ jobs:
     outputs:
       dev: ${{steps.verify-changed-files.outputs.dev_any_changed}}
       qa: ${{steps.verify-changed-files.outputs.qa_any_changed}}
-      other_service: ${{ steps.verify-changed-files.outputs.dev_other_changed_files_count }}
-      other_count_qa: ${{ steps.verify-changed-files.outputs.qa_other_changed_files_count }}
+      run_workflow: ${{ steps.verify-changed-files.outputs.dev_other_changed_files_count }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -30,7 +29,9 @@ jobs:
             - service-yaml/container-dev.yaml
           qa: &qa
             - service-yaml/container-qa.yaml
-    - name: List all changed files
+      # the reason we are doing this check is to cover the use case where the original cloud run workflow will trigger
+      # if both a file outside the service-yaml folder changed and the service-yaml folder.
+    - name: Check if only changes are within the directory
       id: run-dev
       env:
         OTHER: ${{ steps.verify-changed-files.outputs.dev_other_changed_files }}
@@ -44,33 +45,33 @@ jobs:
         done
         echo $check  
 
-  dev:
-    needs: [check_changes]
-    if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.other_count_dev == '0' &&  needs.check_changes.outputs.other_count_qa == '1'  }}
+  # dev:
+  #   needs: [check_changes]
+  #   if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.other_count_dev == '0' &&  needs.check_changes.outputs.other_count_qa == '1'  }}
     
-    uses: ./.github/workflows/cloud-run-service-deployment.yml
-    permissions:
-      id-token: write
-      contents: read
-      actions: read
-      security-events: write
-      checks: write
-      pull-requests: write
-    with:
-      environment: dev
-    secrets: inherit
+  #   uses: ./.github/workflows/cloud-run-service-deployment.yml
+  #   permissions:
+  #     id-token: write
+  #     contents: read
+  #     actions: read
+  #     security-events: write
+  #     checks: write
+  #     pull-requests: write
+  #   with:
+  #     environment: dev
+  #   secrets: inherit
 
-  qa:
-    needs: [check_changes]
-    if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' && needs.check_changes.outputs.other_count_qa == '0' && needs.check_changes.outputs.other_count_dev == '0' }}
-    uses: ./.github/workflows/cloud-run-service-deployment.yml
-    permissions:
-      id-token: write
-      contents: read
-      actions: read
-      security-events: write
-      checks: write
-      pull-requests: write
-    with:
-      environment: qa
-    secrets: inherit
+  # qa:
+  #   needs: [check_changes]
+  #   if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' && needs.check_changes.outputs.other_count_qa == '0' && needs.check_changes.outputs.other_count_dev == '0' }}
+  #   uses: ./.github/workflows/cloud-run-service-deployment.yml
+  #   permissions:
+  #     id-token: write
+  #     contents: read
+  #     actions: read
+  #     security-events: write
+  #     checks: write
+  #     pull-requests: write
+  #   with:
+  #     environment: qa
+  #   secrets: inherit
