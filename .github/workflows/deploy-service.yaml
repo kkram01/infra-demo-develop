@@ -43,7 +43,7 @@ jobs:
           fi
         done
         echo $check
-        echo "run=$(echo "$check") >>$GITHUB_OUTPUT 
+        echo "run=$(echo $check)" >>$GITHUB_OUTPUT 
   test:
     needs: [check_changes]
     runs-on: ubuntu-latest
