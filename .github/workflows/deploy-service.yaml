@@ -1,4 +1,4 @@
-name: Build and Deploy to Cloud Run
+name: Deploy to Cloud Run
 
 on:
   push:
@@ -13,26 +13,50 @@ jobs:
     outputs:
       dev: ${{steps.verify-changed-files.outputs.dev_any_changed}}
       qa: ${{steps.verify-changed-files.outputs.qa_any_changed}}
+      run_workflow: ${{ steps.run-workflow.outputs.run }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - name: Verify Changed files Dev
-      
+    - name: Verify Changed files 
       uses: tj-actions/changed-files@v45
       id: verify-changed-files
       with:
         files_yaml: |
-          dev: &dev
+          dev: 
             - service-yaml/container-dev.yaml
-          qa: &qa
+          qa: 
             - service-yaml/container-qa.yaml
-            
-
-  dev:
+      # the reason we are doing this check is to cover the use case where the original cloud run workflow will trigger
+      # if both a file outside the service-yaml folder changed and the service-yaml folder.
+    - name: Check if only changes are within the directory
+      id: run-workflow
+      env:
+        OTHER: ${{ steps.verify-changed-files.outputs.dev_other_changed_files }}
+      run: |
+        check=true
+        for file in ${OTHER}; do
+          if [[ ! "$file" =~ ^"service-yaml" ]]; then
+             check=false
+             break
+          fi
+        done
+        echo $check
+        echo "run=$(echo $check)" >>$GITHUB_OUTPUT 
+  test:
     needs: [check_changes]
-    if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true'}}
+    runs-on: ubuntu-latest
+    steps:
+      - env: 
+          DEV: ${{needs.check_changes.outputs.dev}}
+          QA: ${{needs.check_changes.outputs.qa}}
+          RUN: ${{needs.check_changes.outputs.run_workflow}}
+        run: echo "$DEV $QA $RUN"   
+  dev:
+  
+    needs: [check_changes]
+    if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.run_workflow == 'true'  }}
     
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
@@ -48,7 +72,7 @@ jobs:
 
   qa:
     needs: [check_changes]
-    if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' }}
+    if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' && needs.check_changes.outputs.run_workflow == 'true'  }}
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
