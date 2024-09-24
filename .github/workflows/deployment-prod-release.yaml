@@ -3,8 +3,8 @@ on:
   release:
     types: [published]
 jobs:
-  release:    
-    uses: ./.github/workflows/cloud-run-service-deployment.yml
+  release:
+    uses: ./.github/workflows/cloud-run-deployment.yml
     permissions:
       id-token: write
       contents: read
