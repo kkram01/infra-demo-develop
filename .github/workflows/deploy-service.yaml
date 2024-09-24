@@ -42,7 +42,9 @@ jobs:
              break
           fi
         done
+        echo $check
         echo "run=$check" >>$GITHUB_OUTPUT 
+        echo toJSON($GITHUB_OUTPUT)
 
   dev:
     needs: [check_changes]
