@@ -44,11 +44,19 @@ jobs:
         done
         echo $check
         echo "run=$(echo "$check") >>$GITHUB_OUTPUT 
-
+  test:
+    needs: [check_changes]
+    runs-on: ubuntu-latest
+    steps:
+      - env: 
+          DEV: ${{needs.check_changes.outputs.dev}}
+          QA: ${{needs.check_changes.outputs.qa}}
+          RUN: ${{needs.check_changes.outputs.run_workflow}}
+        run: echo "$DEV $QA $RUN"   
   dev:
   
     needs: [check_changes]
-    if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.run == 'true'  }}
+    if: ${{ github.ref == 'refs/heads/develop' && needs.check_changes.outputs.dev == 'true' && needs.check_changes.outputs.run_workflow == 'true'  }}
     
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
@@ -64,7 +72,7 @@ jobs:
 
   qa:
     needs: [check_changes]
-    if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' && needs.check_changes.outputs.run == 'true'  }}
+    if: ${{ github.ref == 'refs/heads/main' && needs.check_changes.outputs.qa == 'true' && needs.check_changes.outputs.run_workflow == 'true'  }}
     uses: ./.github/workflows/cloud-run-service-deployment.yml
     permissions:
       id-token: write
