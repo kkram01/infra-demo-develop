@@ -1,5 +1,5 @@
 
-#See2 https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images faster debugging.
+#See2 https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images faster debugging1.
 
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
